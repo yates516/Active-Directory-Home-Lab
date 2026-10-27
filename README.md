@@ -89,9 +89,67 @@ The configuration is intended to protect unattended sessions. The screenshots es
 
 ![Unauthorized Finance Access Denied](./screenshots/11-Unauthorized-Finance-Access-Denied.png)
 
-## Troubleshooting Skills Practiced
+## Troubleshooting & Lessons Learned
 
-In guided lab exercises, practiced diagnosing DNS misconfiguration, missing or stale security-group membership in a logon token, share-versus-NTFS permission issues, disabled accounts, GPO filtering, and Windows temporary-profile errors. These exercises reinforced a repeatable workflow: collect the exact error, test one layer at a time, avoid unnecessary changes, protect user data, and verify the original symptom is resolved.
+Throughout this project, I encountered technical challenges that helped me better understand how Active Directory, Windows permissions, and networking work together. I also completed simulated help desk troubleshooting scenarios to practice identifying problems, investigating their causes, and applying appropriate solutions.
+
+### Troubleshooting NTFS Permission Inheritance
+
+One of the most memorable challenges I encountered involved configuring NTFS permissions for departmental shared folders.
+
+While testing folder access, I discovered that permissions inherited from the parent `C:\` directory were affecting the access restrictions I intended to implement.
+
+To investigate the issue, I opened the folder's Advanced Security Settings and used the Effective Access tab to examine the permissions assigned to specific domain users.
+
+After identifying the inherited permissions, I disabled inheritance, reviewed the permission entries, and adjusted the folder's access controls to better enforce departmental restrictions.
+
+I then tested access using domain accounts to verify that users could access their authorized resources without receiving unnecessary permissions.
+
+**What I learned:** This experience helped me understand how inherited permissions and security group membership affect NTFS access. It also reinforced the importance of verifying effective permissions rather than assuming a folder is configured correctly.
+
+### Simulated Help Desk Ticket: DNS Resolution Failure
+
+During one of my troubleshooting exercises, I investigated a scenario where CLIENT01 was experiencing issues communicating with the Active Directory domain.
+
+The interesting part was that CLIENT01 could successfully reach the domain controller (DC01) using its IP address, but it could not resolve the server's hostname.
+
+**Troubleshooting Process:**
+
+1. Used `ping` to test connectivity between CLIENT01 and DC01.
+2. Confirmed that the domain controller was reachable using its IP address (`192.168.147.10`).
+3. Used `ipconfig /all` to examine CLIENT01's network configuration.
+4. Identified that CLIENT01 was using an incorrect DNS server address.
+5. Corrected the preferred DNS server to point to DC01 (`192.168.147.10`).
+6. Retested hostname resolution and connectivity to verify that the issue was resolved.
+
+**Root Cause:** CLIENT01 was not using the correct DNS server for the Active Directory environment.
+
+**What I Learned:** This exercise helped me understand the difference between basic network connectivity and DNS name resolution. I learned that a computer can communicate with another device through its IP address while still being unable to resolve its hostname.
+
+It also reinforced how important DNS is to Active Directory because domain-joined computers rely on DNS to locate domain controllers and other domain services.
+
+### Simulated Help Desk Ticket: Group Policy Not Applying
+
+During a simulated help desk troubleshooting exercise, I investigated why a Group Policy Object (GPO) was not applying to a user in the Finance department.
+
+The GPO, named `Finance - 10 Minute Screen Lock`, was designed to enforce a 10-minute screen saver timeout and require a password when returning to the computer.
+
+Although the policy was linked to the Finance organizational unit (OU), the intended user was not receiving the policy.
+
+**Troubleshooting Process:**
+
+1. Used `gpresult /r` to investigate which Group Policies were being applied to the affected user.
+2. Identified the message `Filtering: Denied (Security)`, indicating that the policy was being blocked by security filtering.
+3. Opened Group Policy Management on DC01 and located the Finance screen-lock GPO.
+4. Examined the GPO's Scope tab and discovered that security filtering was configured for `IT_Admins` instead of `Finance Users`.
+5. Corrected the security filtering to target the appropriate Finance security group.
+6. Reviewed the use of `gpupdate /force` and `gpresult /r` to refresh policies and verify their application.
+
+**Root Cause:** The GPO was incorrectly configured to target `IT_Admins`, preventing the intended Finance user from applying the policy.
+
+**What I Learned:** This exercise helped me understand that linking a GPO to an organizational unit does not automatically guarantee that every user within that OU will receive the policy.
+
+I also learned how to use `gpresult` to investigate Group Policy application issues and how security filtering affects which users and computers receive specific policies.
 
 ## Tools and Concepts
 
@@ -102,7 +160,7 @@ In guided lab exercises, practiced diagnosing DNS misconfiguration, missing or s
 * Verify Finance GPO application from a Finance user session and capture client-side evidence.
 * Test access to Finance Shared using a Finance account.
 * Review all applicable NTFS entries and effective access for additional user scenarios.
-* Add a network diagram and a concise troubleshooting case study.
+* Add a network diagram to illustrate the lab's network topology.
 
 \---
 
